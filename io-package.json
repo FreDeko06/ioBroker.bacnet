@@ -1,0 +1,113 @@
+{
+	"common": {
+		"name": "bacnet",
+		"version": "0.0.1",
+		"news": {
+			"0.0.1": {
+				"en": "initial release",
+				"de": "Erstveröffentlichung",
+				"ru": "Начальная версия",
+				"pt": "lançamento inicial",
+				"nl": "Eerste uitgave",
+				"fr": "Première version",
+				"it": "Versione iniziale",
+				"es": "Versión inicial",
+				"pl": "Pierwsze wydanie",
+				"uk": "Початкова версія",
+				"zh-cn": "首次出版"
+			}
+		},
+		"titleLang": {
+			"en": "BACnet",
+			"de": "BACNET",
+			"ru": "Бакнет",
+			"pt": "Bacnet",
+			"nl": "Bacnet",
+			"fr": "Bacnet",
+			"it": "Bacnet",
+			"es": "Bacina",
+			"pl": "BACNET",
+			"uk": "Бакет",
+			"zh-cn": "BACNET"
+		},
+		"desc": {
+			"en": "Adapter to communicate with devices using BACnet",
+			"de": "Adapter zur Kommunikation mit Geräten mit BACNET",
+			"ru": "Адаптер для общения с устройствами с использованием Bacnet",
+			"pt": "Adaptador para se comunicar com dispositivos usando o BACNET",
+			"nl": "Adapter om te communiceren met apparaten met behulp van BACnet",
+			"fr": "Adaptateur pour communiquer avec les appareils utilisant BACNET",
+			"it": "Adattatore per comunicare con i dispositivi usando BACNET",
+			"es": "Adaptador para comunicarse con dispositivos que usan BACnet",
+			"pl": "Adapter do komunikacji z urządzeniami za pomocą BACNET",
+			"uk": "Адаптер для спілкування з пристроями за допомогою BACNET",
+			"zh-cn": "使用BACNET与设备通信的适配器"
+		},
+		"authors": [
+			"FreDeko <freddegenkolb@gmail.com>"
+		],
+		"keywords": [
+			"bac",
+			"bacnet",
+			"automation"
+		],
+		"licenseInformation": {
+			"type": "free",
+			"license": "MIT"
+		},
+		"platform": "Javascript/Node.js",
+		"icon": "bacnet.png",
+		"enabled": true,
+		"extIcon": "https://raw.githubusercontent.com/FreDeko06/ioBroker.bacnet/main/admin/bacnet.png",
+		"readme": "https://github.com/FreDeko06/ioBroker.bacnet/blob/main/README.md",
+		"loglevel": "info",
+		"tier": 3,
+		"mode": "daemon",
+		"type": "iot-systems",
+		"compact": true,
+		"connectionType": "local",
+		"dataSource": "poll",
+		"adminUI": {
+			"config": "materialize"
+		},
+		"eraseOnUpload": true,
+		"dependencies": [
+			{
+				"js-controller": ">=6.0.11"
+			}
+		],
+		"globalDependencies": [
+			{
+				"admin": "7.0.23"
+			}
+		]
+	},
+	"native": {
+		"option1": true,
+		"option2": "42"
+	},
+	"objects": [],
+	"instanceObjects": [
+		{
+			"_id": "info",
+			"type": "channel",
+			"common": {
+				"name": "Information"
+			},
+			"native": {}
+		},
+		{
+			"_id": "info.connection",
+			"type": "state",
+			"common": {
+				"role": "indicator.connected",
+				"name": "Device or service connected",
+				"type": "boolean",
+				"read": true,
+				"write": false,
+				"def": false
+			},
+			"native": {}
+		}
+	]
+}
