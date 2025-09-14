@@ -75,12 +75,6 @@ class Bacnet extends utils.Adapter {
 		// same thing, but the state is deleted after 30s (getState will return null afterwards)
 		await this.setStateAsync('testVariable', { val: true, ack: true, expire: 30 });
 
-		// examples for the checkPassword/checkGroup functions
-		let result = await this.checkPasswordAsync('admin', 'iobroker');
-		this.log.info('check user admin pw iobroker: ' + result);
-
-		result = await this.checkGroupAsync('admin', 'admin');
-		this.log.info('check group user admin group admin: ' + result);
 	}
 
 	/**

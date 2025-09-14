@@ -89,6 +89,7 @@ class Settings extends React.Component<SettingsProps, SettingsState> {
 					...style
 				}}
 			>
+				<FormHelperText>{I18n.t(title)}</FormHelperText>
 				<Select
 					value={this.props.native[attr] || '_'}
 					onChange={(e) => this.props.onChange(attr, e.target.value === '_' ? '' : e.target.value)}
@@ -100,7 +101,6 @@ class Settings extends React.Component<SettingsProps, SettingsState> {
 						</MenuItem>
 					))}
 				</Select>
-				<FormHelperText>{I18n.t(title)}</FormHelperText>
 			</FormControl>
 		);
 	}
@@ -130,7 +130,9 @@ class Settings extends React.Component<SettingsProps, SettingsState> {
 		return (
 			<form className={this.props.classes.tab}>
 				{this.renderCheckbox('option1', 'option1')}<br />
-				{this.renderInput('option2', 'option2', 'text')}
+				{this.renderInput('option2', 'option2', 'text')}<br />
+				{this.renderSelect('option3', 'option3', [{title: 'option1', value: "1"}, {title: 'option2', value: "2"}])}
+
 			</form>
 		);
 	}
