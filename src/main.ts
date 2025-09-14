@@ -5,11 +5,30 @@
 // The adapter-core module gives you access to the core ioBroker functions
 // you need to create an adapter
 import * as utils from '@iobroker/adapter-core';
+import bacnet from 'bacstack';
 
-// Load your modules here, e.g.:
-// import * as fs from "fs";
+type Device = {
+	ip: string;
+	port: number;
+	name: string;
+	objects: BACnetObject[];
+};
 
+type BACnetObject = {
+	objectId: number;
+	objectName: string;
+	type: number;
+	binary?: boolean;
+	unit?: string;
+};
+type Property = {
+	id: number;
+	type: ioBroker.CommonType;
+	default: any;
+};
 class Bacnet extends utils.Adapter {
+
+	private bacnet: any;
 
 	public constructor(options: Partial<utils.AdapterOptions> = {}) {
 		super({
@@ -23,6 +42,8 @@ class Bacnet extends utils.Adapter {
 		this.on('unload', this.onUnload.bind(this));
 	}
 
+
+
 	/**
 	 * Is called when databases are connected and adapter received configuration.
 	 */
@@ -31,50 +52,142 @@ class Bacnet extends utils.Adapter {
 
 		// Reset the connection indicator during startup
 		this.setState('info.connection', false, true);
+		this.config.devices.forEach((dev: Device) => {
+			dev.name = dev.name.replace(this.FORBIDDEN_CHARS, "_");
+			dev.objects.forEach((obj: BACnetObject) => {
+				obj.objectName = obj.objectName.replace(this.FORBIDDEN_CHARS, "_");
+			});
+		});
+		
+		await this.updateStates();
 
-		// The adapters config (in the instance object everything under the attribute "native") is accessible via
-		// this.config:
-		this.log.info('config option1: ' + this.config.option1);
-		this.log.info('config option2: ' + this.config.option2);
-
-		/*
-		For every state in the system there has to be also an object of type state
-		Here a simple template for a boolean variable named "testVariable"
-		Because every adapter instance uses its own unique namespace variable names can't collide with other adapters variables
-		*/
-		await this.setObjectNotExistsAsync('testVariable', {
-			type: 'state',
-			common: {
-				name: 'testVariable',
-				type: 'boolean',
-				role: 'indicator',
-				read: true,
-				write: true,
-			},
-			native: {},
+		this.log.debug(`binding to local port ${this.config.port}`);
+		const client = new bacnet({
+			port: this.config.port,
+			interface: this.config.ip,
+			adpuTimeout: 6000
 		});
 
-		// In order to get state updates, you need to subscribe to them. The following line adds a subscription for our variable we have created above.
-		this.subscribeStates('testVariable');
-		// You can also add a subscription for multiple states. The following line watches all states starting with "lights."
-		// this.subscribeStates('lights.*');
-		// Or, if you really must, you can also watch all states. Don't do this if you don't need to. Otherwise this will cause a lot of unnecessary load on the system:
-		// this.subscribeStates('*');
+		this.bacnet = client;
 
-		/*
-			setState examples
-			you will notice that each setState will cause the stateChange event to fire (because of above subscribeStates cmd)
-		*/
-		// the variable testVariable is set to true as command (ack=false)
-		await this.setStateAsync('testVariable', true);
+		client.readProperty('192.168.2.200', {type: 8, instance: 10}, 76, (err: any, value: any) => {
 
-		// same thing, but the value is flagged "ack"
-		// ack should be always set to true if the value is received from or acknowledged from the target system
-		await this.setStateAsync('testVariable', { val: true, ack: true });
+			let nums: any[] = [];
+			value.values.forEach((val: any) => {
+				nums.push({type: val.value.type, id: val.value.instance});
+			});
 
-		// same thing, but the state is deleted after 30s (getState will return null afterwards)
-		await this.setStateAsync('testVariable', { val: true, ack: true, expire: 30 });
+			nums.forEach((n) => {
+				client.readProperty('192.168.2.200', {type: n.type, instance: n.id}, 28, (e: any, v: any) => {
+					if (v == undefined) {
+						this.log.debug(n.id + ": null (" + n.type + ")");
+					}else {
+						this.log.debug(n.id + ": " + v.values[0].value + " ("  + n.type + ")");
+					}
+				});
+			});
 
+		});
+
+		client.readProperty('192.168.2.200', {type: 0, instance: 305880}, this.PROPERTIES["present_value"].id, (e: any, v: any) => {
+
+			if (e != undefined) {
+				this.log.error(e);
+				return;
+			}
+
+			this.log.debug('Sollwert: ' + JSON.stringify(v));
+		});
+
+
+
+
+	}
+
+
+	private async updateStates(): Promise<void> {
+		await this.deleteUnusedStates();
+		await this.createStates();
+	}
+
+	private async deleteUnusedStates(): Promise<void> {
+		const objects = await this.getAdapterObjectsAsync();
+		for(const s in objects) {
+			if (!s.startsWith(`${this.name}.${this.instance}.dev`)) continue;
+
+			if (objects[s].type == "channel" && this.getBACnetObjectFromId(s) == undefined) {
+				await this.delObjectAsync(s, {recursive: true});
+			}
+			if (objects[s].type == "device" && this.config.devices.find((dev: Device) => dev.name == s) == undefined) {
+				await this.delObjectAsync(s, {recursive: true});
+			}
+		}
+	}
+
+	private getBACnetObjectFromId(id: string): BACnetObject {
+		return this.config.devices.find((dev: Device) => dev.objects.some((obj) => id == `dev.${dev.name}.${obj.objectName}`));
+	}
+
+
+	private PROPERTIES: {[id: string] : Property} = 
+		{
+		"present_value": {id: 85, type: "mixed", default: 0},
+		"statusFlags": {id: 111, type: "number", default: 0}
+	};
+
+	private async createStates(): Promise<void> {
+		for (let idx = 0; idx < this.config.devices.length; idx++) {
+			const dev: Device = this.config.devices[idx];
+			this.log.debug(`creating states for ${dev.name}...`);
+			const deviceObj: ioBroker.Object = {
+				type: "device",
+				common: {
+					name: `${dev.name}`,
+				},
+				native: {},
+				_id: `dev.${dev.name}`,
+			};
+			await this.setObjectNotExistsAsync(`dev.${dev.name}`, deviceObj);
+
+			for (let oIdx = 0; oIdx < dev.objects.length; oIdx++) {
+				const obj = dev.objects[oIdx];
+
+				const channelId = `dev.${dev.name}.${obj.objectName}`;
+
+				const channelObj: ioBroker.Object = {
+					type: "channel",
+					common: {
+						name: `Object ${obj.objectName}`,
+					},
+					native: {},
+					_id: channelId
+				};
+				await this.setObjectNotExistsAsync(channelId, channelObj);
+
+
+				for (const prop in this.PROPERTIES) {
+					const propId = `dev.${dev.name}.${obj.objectName}.${prop}`;
+
+					const propObj: ioBroker.StateObject = {
+						type: "state",
+						common: {
+							type: prop == "present_value" ? (obj.binary ? "boolean" : "number") : this.PROPERTIES[prop].type,
+							read: true,
+							write: true,
+							role: 'value',
+							name: `Prop ${prop}`,
+							def: prop == "present_value" ? (obj.binary ? false : 0) : this.PROPERTIES[prop].default,
+							unit: obj.unit,
+						},
+						native: {},
+						_id: propId,
+					};
+
+					await this.setObjectNotExistsAsync(propId, propObj);
+				}
+			}
+
+		}
 	}
 
 	/**
@@ -87,6 +200,7 @@ class Bacnet extends utils.Adapter {
 			// clearTimeout(timeout2);
 			// ...
 			// clearInterval(interval1);
+			bacnet.close();
 
 			callback();
 		} catch (e) {

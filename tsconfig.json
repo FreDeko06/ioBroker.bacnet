@@ -32,7 +32,9 @@
 		// "useUnknownInCatchVariables": false,
 
 		"sourceMap": true,
-		"inlineSourceMap": false
+		"inlineSourceMap": false,
+
+		"typeRoots": ["./src/types", "./node_modules/@types"]
 	},
 	"include": [
 		"src/**/*.ts",
