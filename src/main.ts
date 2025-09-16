@@ -2,14 +2,13 @@
  * Created with @iobroker/create-adapter v2.6.5
  */
 
-// The adapter-core module gives you access to the core ioBroker functions
-// you need to create an adapter
 import * as utils from '@iobroker/adapter-core';
-import Bacnet, { ApplicationTag, BACNetAddress, DecodeAcknowledgeSingleResult, ObjectType, PropertyIdentifier } from '@bacnet-js/client';
+import Bacnet, { ApplicationTag, ObjectType, PropertyIdentifier } from '@bacnet-js/client';
 
 type BACnetDevice  = {
 	ip: string;
 	instance: number;
+	name: string;
 };
 type BACnetObj  = {
 	id: number;
@@ -29,10 +28,10 @@ type Device = {
 type BACnetObject = {
 	objectId: number;
 	objectName: string;
+	description: string;
 	type: number;
 	subscribe: boolean;
 	binary?: boolean;
-	unit?: string;
 	valueType?: ApplicationTag;
 };
 type Property = {
@@ -55,7 +54,6 @@ class BacnetAdapter extends utils.Adapter {
 		});
 		this.on('ready', this.onReady.bind(this));
 		this.on('stateChange', this.onStateChange.bind(this));
-		// this.on('objectChange', this.onObjectChange.bind(this));
 		// this.on('message', this.onMessage.bind(this));
 		this.on('unload', this.onUnload.bind(this));
 	}
@@ -66,65 +64,31 @@ class BacnetAdapter extends utils.Adapter {
 	 * Is called when databases are connected and adapter received configuration.
 	 */
 	private async onReady(): Promise<void> {
-		// Initialize your adapter here
-
-		// Reset the connection indicator during startup
 		this.setState('info.connection', false, true);
 
-		this.devices = this.config.devices;
+		this.devices = [];
 
-		// testing array
-		this.devices = [
-			{
-				ip: "192.168.2.200",
-				port: 0xBAC0,
-				name: "DHC",
-				objects: [{
-					objectId: 305880,
-					objectName: "Sollwert",
-					binary: false,
-					type: 0,
-					unit: "",
-					subscribe: false
-				},
-				{
-					objectId: 66740,
-					objectName: "Schalten1",
-					binary: false,
-					type: 5,
-					unit: "",
-					subscribe: false
-				},
-				{
-					objectId: 66745,
-					objectName: "Schalten2",
-					binary: false,
-					type: 5,
-					unit: "",
-					subscribe: false
-				},
-				{
-					objectId: 305887,
-					objectName: "Pumpe",
-					binary: false,
-					type: 4,
-					unit: "",
-					subscribe: true
-				}
-
-				],
-			}
-		];
-
-
-
-		this.devices.forEach((dev: Device) => {
+		this.config.devices.forEach((dev: Device) => {
 			dev.name = dev.name.replace(this.FORBIDDEN_CHARS, '_');
+			if (this.devices.some((d: Device) => d.name == dev.name || d.ip == dev.ip)) {
+				this.log.warn(`Skipping device ${dev.name} with ${dev.objects.length} object(s). Name or ip address already exists.`);
+				return;
+			}
+			const objects: BACnetObject[] = [];
 			dev.objects.forEach((obj: BACnetObject) => {
 				obj.objectName = obj.objectName.replace(this.FORBIDDEN_CHARS, '_');
+				if (objects.some((o: BACnetObject) => o.objectId == obj.objectId || o.objectName == obj.objectName)) {
+					this.log.warn(`Skipping obj ${dev.name}/${obj.objectName}. Name or object id already exists.`);
+					return;
+				}
+				obj.binary = obj.type == ObjectType.BINARY_INPUT || obj.type == ObjectType.BINARY_OUTPUT || obj.type == ObjectType.BINARY_VALUE;
+				objects.push(obj);
+
 			});
+			dev.objects = objects;
+			this.devices.push(dev);
 		});
-		
+
 		await this.updateStates();
 		this.subscribeStates(`dev.*`);
 
@@ -189,14 +153,14 @@ class BacnetAdapter extends utils.Adapter {
 			}
 
 			data.payload.values.forEach((val: any) => {
-				let prop = "";
+				let prop = '';
 				for (const p in this.PROPERTIES) {
 					if (this.PROPERTIES[p].id == val.property.id) {
 						prop = p;
 						break;
 					}
 				}
-				if (prop == "") {
+				if (prop == '') {
 					return;
 				}
 				this.setBACnetState(dev, obj, prop, this.handleValue(val.value[0].type, val.value[0].value))
@@ -211,24 +175,34 @@ class BacnetAdapter extends utils.Adapter {
 	}
 
 	private pollValues(): void {
+		const promises: Promise<void>[] = [];
 		this.devices.forEach((dev: Device) => {
 			dev.objects.forEach((obj: BACnetObject) => {
-				for (let prop in this.PROPERTIES) {
-					this.pollProperty(dev, obj, prop);
+				for (const prop in this.PROPERTIES) {
+					promises.push(this.pollProperty(dev, obj, prop));
 				}
 			});
 		});
+		Promise.all(promises).catch(() => {
+			this.setState('info.connection', false, true);
+		}).then(() => {
+			this.setState('info.connection', true, true);
+		});
 	}
 
-	private pollProperty(dev: Device, obj: BACnetObject, prop: string): any {
-		this.bacnet.readProperty({address: dev.ip}, {type: obj.type, instance: obj.objectId}, this.PROPERTIES[prop].id).then((value) => {
-			this.log.debug(`received ${JSON.stringify(value)} for ${prop}`);
-			if(prop == "present_value") obj.valueType = value.values[0].type;
-			let v = this.handleValue(value.values[0].type, value.values[0].value);
-			this.setBACnetState(dev, obj, prop, v);
-		}).catch((err) => {
-			this.log.error(`Failed to poll: ${dev.name}/${obj.objectId}: ${err}`);
-		}); 				
+	private async pollProperty(dev: Device, obj: BACnetObject, prop: string): Promise<void> {
+		return await new Promise<void>((resolve, reject) => {
+			this.bacnet.readProperty({address: dev.ip}, {type: obj.type, instance: obj.objectId}, this.PROPERTIES[prop].id).then((value) => {
+				this.log.debug(`received ${JSON.stringify(value)} for ${prop}`);
+				if(prop == 'present_value') obj.valueType = value.values[0].type;
+				const v = this.handleValue(value.values[0].type, value.values[0].value);
+				this.setBACnetState(dev, obj, prop, v);
+				resolve();
+			}).catch((err) => {
+				this.log.error(`Failed to poll: ${dev.name}/${obj.objectId}: ${err}`);
+				reject(err);
+			});
+		});
 	}
 
 	private handleValue(dataType: number, value: any): any {
@@ -253,7 +227,7 @@ class BacnetAdapter extends utils.Adapter {
 
 			default:
 				this.log.warn(`Unknown data-type: ${dataType}`);
-				return 0;
+				return JSON.stringify(value);
 
 		}
 	}
@@ -261,37 +235,9 @@ class BacnetAdapter extends utils.Adapter {
 	private setBACnetState(dev: Device, obj: BACnetObject, prop: string, value: any): void {
 		const id = `dev.${dev.name}.${obj.objectName}.${prop}`;
 		this.log.debug(`setting ${JSON.stringify(value)} to ${id}..`);
-		this.setState(id, value, true).catch((e) => {
+		this.setState(id, prop == 'present_value' && obj.binary ? value == 1 : value, true).catch((e) => {
 			this.log.error(e);
 		});;
-	}
-
-
-	private printAllObjects(): void {
-
-		this.bacnet.readProperty({address: '192.168.2.200'}, {type: 8, instance: 10}, 76).then((value) => {
-			let nums: any[] = [];
-			value.values.forEach((val: any) => {
-				nums.push({type: val.value.type, id: val.value.instance});
-			});
-
-			nums.forEach((n) => {
-				this.bacnet.readProperty({address: '192.168.2.200'}, {type: n.type, instance: n.id}, /*28*/77).then((v) => {
-						this.log.debug(n.id + ": " + v.values[0].value + " ("  + n.type + ")");
-				}).catch((e) => {
-					this.log.debug(n.id + ": null (" + n.type + ")");
-					this.log.error(e);
-				});
-			});
-		}).catch((e) => {
-			this.log.error(e);
-		});
-
-		this.bacnet.readProperty({address: '192.168.2.200'}, {type: 4, instance: 305887}, this.PROPERTIES["present_value"].id).then((v) => {
-			this.log.debug('Sollwert: ' + JSON.stringify(v));
-		}).catch((e) => {
-			this.log.error(e);
-		}); 
 	}
 
 
@@ -305,10 +251,10 @@ class BacnetAdapter extends utils.Adapter {
 		for(const s in objects) {
 			if (!s.startsWith(`${this.name}.${this.instance}.dev`)) continue;
 
-			if (objects[s].type == "channel" && this.isBACnetObjectFromId(s)) {
+			if (objects[s].type == 'channel' && this.isBACnetObjectFromId(s)) {
 				await this.delObjectAsync(s, {recursive: true});
 			}
-			if (objects[s].type == "device" && this.devices.find((dev: Device) => dev.name == s) == undefined) {
+			if (objects[s].type == 'device' && this.devices.find((dev: Device) => dev.name == s) == undefined) {
 				await this.delObjectAsync(s, {recursive: true});
 			}
 		}
@@ -319,18 +265,18 @@ class BacnetAdapter extends utils.Adapter {
 	}
 
 
-	private PROPERTIES: {[id: string] : Property} = 
+	private PROPERTIES: {[id: string] : Property} =
 		{
-		"present_value": {id: 85, type: "mixed", default: 0, valueType: 0},
-		"statusFlags": {id: 111, type: "number", default: 0, valueType: 8}
-	};
+			'present_value': {id: 85, type: 'mixed', default: 0, valueType: 0},
+			'statusFlags': {id: 111, type: 'number', default: 0, valueType: 8}
+		};
 
 	private async createStates(): Promise<void> {
 		for (let idx = 0; idx < this.devices.length; idx++) {
 			const dev: Device = this.devices[idx];
 			this.log.debug(`creating states for ${dev.name}...`);
 			const deviceObj: ioBroker.Object = {
-				type: "device",
+				type: 'device',
 				common: {
 					name: `${dev.name}`,
 				},
@@ -345,9 +291,9 @@ class BacnetAdapter extends utils.Adapter {
 				const channelId = `dev.${dev.name}.${obj.objectName}`;
 
 				const channelObj: ioBroker.Object = {
-					type: "channel",
+					type: 'channel',
 					common: {
-						name: `Object ${obj.objectName}`,
+						name: obj.description,
 					},
 					native: {},
 					_id: channelId
@@ -359,15 +305,14 @@ class BacnetAdapter extends utils.Adapter {
 					const propId = `dev.${dev.name}.${obj.objectName}.${prop}`;
 
 					const propObj: ioBroker.StateObject = {
-						type: "state",
+						type: 'state',
 						common: {
-							type: prop == "present_value" ? (obj.binary ? "boolean" : "number") : this.PROPERTIES[prop].type,
+							type: prop == 'present_value' ? (obj.binary ? 'boolean' : 'number') : this.PROPERTIES[prop].type,
 							read: true,
 							write: true,
 							role: 'value',
 							name: `Prop ${prop}`,
-							def: prop == "present_value" ? (obj.binary ? false : 0) : this.PROPERTIES[prop].default,
-							unit: obj.unit,
+							def: prop == 'present_value' ? (obj.binary ? false : 0) : this.PROPERTIES[prop].default,
 						},
 						native: {},
 						_id: propId,
@@ -385,7 +330,7 @@ class BacnetAdapter extends utils.Adapter {
 	private onUnload(callback: () => void): void {
 		try {
 			// unsubscribe
-			
+
 			this.clearInterval(this.pollInterval);
 
 			this.unsubscribeCOVs().catch(() => {}).finally(() => {
@@ -393,13 +338,13 @@ class BacnetAdapter extends utils.Adapter {
 			});
 
 			callback();
-		} catch (e) {
+		} catch {
 			callback();
 		}
 	}
 
 	private async unsubscribeCOVs(): Promise<void> {
-		let promises: Promise<void>[] = [];
+		const promises: Promise<void>[] = [];
 		this.devices.forEach((dev: Device) => {
 			let id = 80;
 			dev.objects.forEach((obj: BACnetObject) => {
@@ -459,20 +404,51 @@ class BacnetAdapter extends utils.Adapter {
 
 			this.sendObject(dev, obj, matches[3], state.val);
 
-		} 
+		}
+	}
+
+	private formatValueType(valueType: number, value: any): any {
+		switch(valueType) {
+			case 0:
+				return 0;
+			case 1:
+			case 2:
+			case 3:
+			case 4:
+			case 5:
+			case 6:
+			case 7:
+			case 9:
+			case 10:
+			case 11:
+				return value;
+			case 8:
+				return [{value: value, bitsUsed: 4}];
+
+			default:
+				this.log.warn(`Unknown data-type: ${valueType}`);
+				try {
+					return JSON.parse(value);
+				}catch {
+					return {};
+				}
+
+		}
 	}
 
 	private sendObject(dev: Device, obj: BACnetObject, prop: string, val: any): void {
 		this.log.debug(`sending (${obj.valueType}, ${val}) to ${dev.ip}, (${obj.type}, ${obj.objectId}): ${this.PROPERTIES[prop].id}`);
 
-		
+
 		if (obj.valueType == undefined) {
 			this.log.error(`Cannot send. value type not fetched yet.`);
 			return;
 		}
 
+		const valueType: number = prop == 'present_value' ? obj.valueType : this.PROPERTIES[prop].valueType;
+
 		this.bacnet.writeProperty({address: dev.ip}, {type: obj.type, instance: obj.objectId}, this.PROPERTIES[prop].id, [
-			{type: prop == "present_value" ? obj.valueType : this.PROPERTIES[prop].valueType, value: val}
+			{type: valueType, value: this.formatValueType(valueType, val)}
 		], {}).catch((e) => {
 			this.log.error(`Failed to send ${dev.name}/${obj.objectId}/${prop}: ${e}`);
 		}).finally(() => {
@@ -484,10 +460,20 @@ class BacnetAdapter extends utils.Adapter {
 
 	private async findDevices(): Promise<BACnetDevice[]> {
 		return await new Promise<BACnetDevice[]>((resolve) => {
-			let addresses: BACnetDevice[] = [];
-			const callback = (data: any) => {
+			const addresses: BACnetDevice[] = [];
+			const callback = (data: any): void => {
 				if (!data.header || !data.payload) return;
-				addresses.push({ip: data.header.sender.address, instance: data.payload.deviceId});
+				const dev: BACnetDevice = {ip: data.header.sender.address, instance: data.payload.deviceId, name: ''};
+				this.bacnet.readProperty(
+					{address: data.header.sender.address},
+					{instance: data.payload.deviceId, type: ObjectType.DEVICE},
+					PropertyIdentifier.OBJECT_NAME
+				).then((v) => {
+					dev.name = v.values[0].value;
+					addresses.push(dev);
+				}).catch(() => {
+				});
+				addresses.push();
 			};
 			this.bacnet.on('iAm', callback);
 			this.bacnet.whoIs();
@@ -503,16 +489,16 @@ class BacnetAdapter extends utils.Adapter {
 	}
 
 	private async findObjectsFromDevice(dev: BACnetDevice): Promise<BACnetObj[]> {
-		let objs: BACnetObj[] = [];
-		let vals = await this.bacnet.readProperty(
+		const objs: BACnetObj[] = [];
+		const vals = await this.bacnet.readProperty(
 			{address: dev.ip},
 			{instance: dev.instance, type: ObjectType.DEVICE},
 			PropertyIdentifier.OBJECT_LIST
 		);
-		let promises: Promise<void>[] = [];
+		const promises: Promise<void>[] = [];
 		return await new Promise<BACnetObj[]> ((resolve) => {
 			vals.values.forEach((v) => {
-				let obj: BACnetObj = {id: v.value.instance, type: v.value.type, name: '', desc: ''};
+				const obj: BACnetObj = {id: v.value.instance, type: v.value.type, name: '', desc: ''};
 				objs.push(obj);
 				const p = this.bacnet.readProperty(
 					{address: dev.ip},
@@ -542,17 +528,27 @@ class BacnetAdapter extends utils.Adapter {
 
 	private async findDevice(ip: string): Promise<BACnetDevice> {
 		return await new Promise<BACnetDevice>((resolve, reject) => {
+			const callback = (data: any): void => {
+				if (!data.header || !data.payload) return;
+				const dev: BACnetDevice = {ip: data.header.sender.address, instance: data.payload.deviceId, name: ''};
+				this.bacnet.off('iAm', callback);
+				this.bacnet.readProperty(
+					{address: data.header.sender.address},
+					{instance: data.payload.deviceId, type: ObjectType.DEVICE},
+					PropertyIdentifier.OBJECT_NAME
+				).then((v) => {
+					dev.name = v.values[0].value;
+					resolve(dev);
+				}).catch((e) => {
+					reject(e);
+				});
+			};
+			this.bacnet.on('iAm', callback);
+			this.bacnet.whoIs({address: ip});
 			this.setTimeout(() => {
 				this.bacnet.off('iAm', callback);
 				reject();
 			}, 5000);
-			const callback = (data: any) => {
-				if (!data.header || !data.payload) return;
-				this.bacnet.off('iAm', callback);
-				resolve({ip: data.header.sender.address, instance: data.payload.deviceId});
-			};
-			this.bacnet.on('iAm', callback);
-			this.bacnet.whoIs({address: ip});
 		});
 	}
 
