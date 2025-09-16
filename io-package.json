@@ -67,6 +67,7 @@
 		"compact": true,
 		"connectionType": "local",
 		"dataSource": "poll",
+		"singelton": true,
 		"adminUI": {
 			"config": "materialize"
 		},
@@ -85,7 +86,8 @@
 	"native": {
 		"ip": "0.0.0.0",
 		"port": 47808,
-		"objects": []
+		"devices": [],
+		"pollInterval": 10
 	},
 	"objects": [],
 	"instanceObjects": [

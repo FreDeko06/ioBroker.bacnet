@@ -21,8 +21,8 @@
     "node": ">= 18"
   },
   "dependencies": {
-    "@iobroker/adapter-core": "^3.3.2",
-    "bacstack": "^0.0.1-beta.14"
+    "@bacnet-js/client": "^3.0.0",
+    "@iobroker/adapter-core": "^3.3.2"
   },
   "devDependencies": {
     "@alcalzone/release-script": "^3.8.0",

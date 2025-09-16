@@ -8,6 +8,7 @@ declare global {
 			ip: string;
 			port: number;
 			devices: Device[];
+			pollInterval: number;
 		}
 	}
 }
