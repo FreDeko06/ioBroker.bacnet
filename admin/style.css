@@ -30,3 +30,16 @@ label > i[title] {
 }
 
 /* Add your styles here */
+
+.App form::after {
+	content: '';
+	display: block;
+	height: 100px;
+}
+
+.MuiTabs-scroller {
+	overflow-x: scroll !important;
+}
+.MuiToolbar-root {
+	position: fixed !important;
+}

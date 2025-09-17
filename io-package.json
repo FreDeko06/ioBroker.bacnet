@@ -87,7 +87,7 @@
 		"ip": "0.0.0.0",
 		"port": 47808,
 		"devices": [],
-		"pollInterval": 10
+		"pollInterval": 30
 	},
 	"objects": [],
 	"instanceObjects": [
