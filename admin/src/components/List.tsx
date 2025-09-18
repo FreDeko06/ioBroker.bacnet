@@ -8,7 +8,7 @@ export default function List({data, columns, onDelete}) {
         <TableHead>
             <TableRow>
                 {
-                    columns.map((column, index) => <TableCell key={index}><b>{column.title}</b></TableCell>)
+                    columns.filter((column) => !column.hide).map((column, index) => <TableCell key={index}><b>{column.title}</b></TableCell>)
                 }
                 <TableCell />
             </TableRow>
@@ -16,7 +16,7 @@ export default function List({data, columns, onDelete}) {
         <TableBody>
             {
                 data.map((row, index) => <TableRow key={index}>
-                    {columns.map((column, cIndex) => <TableCell key={cIndex}>{column.format(row[column.field], index)}</TableCell>)}
+                    {columns.filter((column) => !column.hide).map((column, cIndex) => <TableCell key={cIndex}>{column.format(row[column.field], index)}</TableCell>)}
                     <TableCell><Button variant="contained" color="secondary" onClick={() => onDelete(index)}>{I18n.t("delete")}</Button></TableCell>
                 </TableRow>)
             }

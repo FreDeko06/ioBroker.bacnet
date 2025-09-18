@@ -1,10 +1,11 @@
 import { Button, Checkbox, MenuItem, Select, TextField } from '@material-ui/core';
 import React from 'react';
 import List from './List';
+import Connection from '@iobroker/adapter-react/Connection';
 
 import I18n from '@iobroker/adapter-react/i18n';
 
-export default function ObjectList({state, deviceIndex, onChange, setDevices}) {
+export default function ObjectList({socket, connectionInfo, state, deviceIndex, onChange, setDevices}) {
     const addObjectButton = <Button style={{width: '100%'}} variant="contained" color="primary" onClick={(e) => {
                 let name = I18n.t("objectNew");
                 let num = 1;
@@ -100,12 +101,23 @@ export default function ObjectList({state, deviceIndex, onChange, setDevices}) {
                 {title: I18n.t("objectDescription"), field: "description", format: (data, row) => 
                     <span style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10}}>
                         <TextField value={data} onChange={(e) => setDevices(devices => devices[deviceIndex].objects[row].description = e.target.value)} />
-                        <Button variant='contained' color='primary' onClick={() => {
-                            // TODO Fetch
+                        <Button variant='contained' color='primary' onClick={async () => {
+			    const p = await (socket as Connection).sendTo(`${connectionInfo.adapterName}.${connectionInfo.instanceId}`, 'getObjectDesc', 
+									  {ip: state.native.devices[deviceIndex].ip, objType: state.native.devices[deviceIndex].objects[row].type,
+									    objId: state.native.devices[deviceIndex].objects[row].objectId});
+			    if (p == undefined) return;
+			    const msg: {success: boolean, name: string, desc: string} = p as unknown as {success: boolean, name: string, desc: string};
+			    console.log(msg);
+			    if (msg.success) {
+				    setDevices((devices) => devices[deviceIndex].objects[row].objectName = msg.name);
+				    setDevices((devices) => devices[deviceIndex].objects[row].description = msg.desc);
+			    }else {
+				    alert("Object not found");
+			    }
                         }}>{I18n.t("fetch")}</Button>
                     </span>
                 },
-                {onlyExpert: true, title: I18n.t("objectProperties"), field: "props", format: (data, row) => 
+                {hide: !state.expertMode, title: I18n.t("objectProperties"), field: "props", format: (data, row) => 
                     <span style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10}}>
                         <TextField value={data.map(i => isNaN(i) ? "" : i).join(",")} onChange={(e) => setDevices(devices => {
                             devices[deviceIndex].objects[row].props = e.target.value.replace(/[^0-9,]/g, "").split(",").map(s => s == "" ? NaN : Number(s));

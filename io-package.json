@@ -64,6 +64,9 @@
 		"tier": 3,
 		"mode": "daemon",
 		"type": "iot-systems",
+		"supportedMessages": {
+			"custom": true
+		},
 		"compact": true,
 		"connectionType": "local",
 		"dataSource": "poll",

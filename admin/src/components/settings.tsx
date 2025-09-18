@@ -125,7 +125,7 @@ class Settings extends React.Component<SettingsProps, SettingsState> {
 										{I18n.t("showAllDevices")}
 									</Button>
 									<br /><br />
-									<ObjectList state={this.props.state} deviceIndex={index} onChange={this.props.onChange} setDevices={setDevices} />
+									<ObjectList socket={this.props.socket} connectionInfo={this.props.connectionInfo} state={this.props.state} deviceIndex={index} onChange={this.props.onChange} setDevices={setDevices} />
 								</CustomTabPanel>;
 						})
 					}

@@ -10,11 +10,6 @@ const styles = (_theme: Theme): StyleRules => ({
 	root: {},
 });
 
-type ConnectionInfo = {
-	adapterName: string;
-	instanceId: number;
-};
-
 class App extends GenericApp {
 	constructor(props: GenericAppProps) {
 		const extendedProps: GenericAppSettings = {
@@ -36,15 +31,9 @@ class App extends GenericApp {
 		super(props, extendedProps);
 				
 	}
-	connected: boolean = false;
 
 	onConnectionReady(): void {
 		// executed when connection is ready
-		console.log("CONNECTIONREADY");
-		this.connected = true;
-		console.log(this.socket.isConnected());
-		this.socket.sendTo('admin.0', 'getVersion', {}).then((v) => console.log(v));
-		this.socket.getState('system.adapter.bacnet.0.alive').then(console.log);
 	}
 
 	render() {
@@ -54,6 +43,7 @@ class App extends GenericApp {
 		}
 			console.log("FINISH");
 		const connectionInfo = {adapterName: this.adapterName, instanceId: this.instance};
+		console.log(this.state.expertMode);
 
 		return (
 			<div className="App">
