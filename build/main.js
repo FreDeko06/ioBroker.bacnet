@@ -35,6 +35,7 @@ class BacnetAdapter extends utils.Adapter {
     });
     this.on("ready", this.onReady.bind(this));
     this.on("stateChange", this.onStateChange.bind(this));
+    this.on("message", this.onMessage.bind(this));
     this.on("unload", this.onUnload.bind(this));
   }
   /**
@@ -45,6 +46,13 @@ class BacnetAdapter extends utils.Adapter {
       const id2 = import_client.PropertyIdentifier[mod];
       this.PROPERTIES[mod.toLowerCase()] = { id: id2 };
     }
+    this.on("message", (obj) => {
+      if (obj && obj.command === "test") {
+        if (typeof obj.callback === "function") {
+          this.sendTo(obj.from, obj.command, { success: true }, obj.callback);
+        }
+      }
+    });
     this.log.debug(`binding to local port ${this.config.port}`);
     const client = new import_client.default({
       port: this.config.port,
@@ -85,14 +93,14 @@ class BacnetAdapter extends utils.Adapter {
       );
       this.config.pollInterval = 30;
     }
-    const id = 80;
+    let id = 80;
     for (let dIdx = 0; dIdx < this.devices.length; dIdx++) {
       const dev = this.devices[dIdx];
       for (let idx = 0; idx < dev.objects.length; idx++) {
         const obj = dev.objects[idx];
         if (!obj.subscribe) continue;
         this.log.debug(`subscribing to ${dev.name}/${obj.objectName}`);
-        this.subscribeCOV(dev, obj, id, 0);
+        this.subscribeCOV(dev, obj, id++, 0);
         await new Promise((r) => setTimeout(r, 100));
       }
     }
@@ -346,14 +354,14 @@ class BacnetAdapter extends utils.Adapter {
   }
   async unsubscribeCOVs() {
     const promises = [];
-    const id = 80;
+    let id = 80;
     for (let dIdx = 0; dIdx < this.devices.length; dIdx++) {
       const dev = this.devices[dIdx];
       for (let idx = 0; idx < dev.objects.length; idx++) {
         const obj = dev.objects[idx];
         if (!obj.subscribe) return;
         this.log.debug(`unsubscribing from ${dev.name}/${obj.objectName}`);
-        this.subscribeCOV(dev, obj, id, 1);
+        this.subscribeCOV(dev, obj, id++, 1);
         await new Promise((r) => setTimeout(r, 100));
       }
     }
@@ -401,7 +409,7 @@ class BacnetAdapter extends utils.Adapter {
   /**
    * Is called if a subscribed state changes
    */
-  async onStateChange(id, state) {
+  onStateChange(id, state) {
     if (state) {
       if (state.ack) return;
       const regex = /dev\.([^\.]+)\.([^\.]+)\.(.*)$/g;
@@ -588,21 +596,16 @@ class BacnetAdapter extends utils.Adapter {
       return JSON.stringify(error);
     }
   }
-  // If you need to accept messages in your adapter, uncomment the following block and the corresponding line in the constructor.
-  // /**
-  //  * Some message was sent to this instance over message box. Used by email, pushover, text2speech, ...
-  //  * Using this method requires "common.messagebox" property to be set to true in io-package.json
-  //  */
-  // private onMessage(obj: ioBroker.Message): void {
-  // 	if (typeof obj === 'object' && obj.message) {
-  // 		if (obj.command === 'send') {
-  // 			// e.g. send email or pushover or whatever
-  // 			this.log.info('send command');
-  // 			// Send response in callback if required
-  // 			if (obj.callback) this.sendTo(obj.from, obj.command, 'Message received', obj.callback);
-  // 		}
-  // 	}
-  // }
+  onMessage(obj) {
+    this.log.info(obj.command);
+    this.sendTo(obj.from, obj.command, "Message received", obj.callback);
+    if (typeof obj === "object" && obj.message) {
+      if (obj.command === "send") {
+        this.log.info("send command");
+        this.sendTo(obj.from, obj.command, "Message received", obj.callback);
+      }
+    }
+  }
 }
 if (require.main !== module) {
   module.exports = (options) => new BacnetAdapter(options);

@@ -4,12 +4,12 @@ import List from './List';
 
 import I18n from '@iobroker/adapter-react/i18n';
 
-export default function ObjectList({native, deviceIndex, onChange, setDevices}) {
+export default function ObjectList({state, deviceIndex, onChange, setDevices}) {
     const addObjectButton = <Button style={{width: '100%'}} variant="contained" color="primary" onClick={(e) => {
                 let name = I18n.t("objectNew");
                 let num = 1;
     
-                while (native.devices[deviceIndex].objects.find(o => o.objectName == name) != undefined) {
+                while (state.native.devices[deviceIndex].objects.find(o => o.objectName == name) != undefined) {
                     num++;
     
                     name = I18n.t("objectNew") + " (" + num + ")";
@@ -24,7 +24,7 @@ export default function ObjectList({native, deviceIndex, onChange, setDevices}) 
         
             <hr /><br />
             
-            <List data={native.devices[deviceIndex].objects} columns={[
+            <List data={state.native.devices[deviceIndex].objects} columns={[
                 {title: I18n.t("objectType"), field: "type", format: (data, row) => 
                     <Select value={data} onChange={(e) => {
                         setDevices(devices => devices[deviceIndex].objects[row].type = e.target.value);
@@ -118,7 +118,7 @@ export default function ObjectList({native, deviceIndex, onChange, setDevices}) 
             ]} onDelete={(index) => setDevices((devices) => devices[deviceIndex].objects.splice(index, 1))} />
 
             {
-                native.devices[deviceIndex].objects.length > 5 ? <>
+                state.native.devices[deviceIndex].objects.length > 5 ? <>
                 <br />
 
                 {addObjectButton}

@@ -3,8 +3,9 @@ import React from 'react';
 import List from './List';
 
 import I18n from '@iobroker/adapter-react/i18n';
+import Connection from '@iobroker/adapter-react/Connection';
 
-export default function DeviceList({native, onChange, selectTab, setDevices}) {
+export default function DeviceList({socket, connectionInfo, native, onChange, selectTab, setDevices}) {
     const addDeviceButton = <Button style={{width: '100%'}} variant="contained" color="primary" onClick={(e) => {
             let name = I18n.t("deviceNew");
             let num = 1;
@@ -35,7 +36,16 @@ export default function DeviceList({native, onChange, selectTab, setDevices}) {
                 <span style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10}}>
                     <TextField value={data} onChange={(e) => setDevices((devices) => devices[row].name = e.target.value)} />
                     <Button variant='contained' color='primary' onClick={() => {
-                        // TODO Fetch
+			    console.log(`sending send to ${connectionInfo.adapterName}.${connectionInfo.instanceId}`);
+			    console.log(`${JSON.stringify(socket as Connection)}`);
+			    const p = (socket as Connection).sendTo(`${connectionInfo.adapterName}.${connectionInfo.instanceId}`, 'send')
+			    	.then((v) => {
+					console.log(v);
+				})
+				.catch((e) => {
+					console.log(e);
+				});
+				setInterval(() => console.log(p), 1000);
                     }}>{I18n.t("fetch")}</Button>
                 </span>
             },

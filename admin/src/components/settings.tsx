@@ -6,6 +6,8 @@ import DeviceList from './DeviceList';
 import ObjectList from './ObjectList';
 
 import I18n from '@iobroker/adapter-react/i18n';
+import { ConnectionProps } from '@iobroker/adapter-react/types';
+import Connection from '@iobroker/adapter-react/Connection';
 
 const styles = (): Record<string, CreateCSSProperties> => ({
 	input: {
@@ -42,7 +44,9 @@ const styles = (): Record<string, CreateCSSProperties> => ({
 
 interface SettingsProps {
 	classes: Record<string, string>;
-	native: Record<string, any>;
+	state: any;
+	connectionInfo: any;
+	socket: Connection;
 
 	onChange: (attr: string, value: any) => void;
 }
@@ -57,8 +61,8 @@ class Settings extends React.Component<SettingsProps, SettingsState> {
 	constructor(props: SettingsProps) {
 		super(props);
 
-		if (this.props.native.devices == undefined) {
-			this.props.native.devices = [];
+		if (this.props.state.native.devices == undefined) {
+			this.props.state.native.devices = [];
 		}
 
 		this.state = {
@@ -68,7 +72,7 @@ class Settings extends React.Component<SettingsProps, SettingsState> {
 
 	render() {
 		const setDevices = (set) => {
-			let devices = JSON.parse(JSON.stringify(this.props.native.devices));
+			let devices = JSON.parse(JSON.stringify(this.props.state.native.devices));
 
 			set(devices);
 
@@ -81,7 +85,7 @@ class Settings extends React.Component<SettingsProps, SettingsState> {
 					<Tab label={I18n.t("generalSettingsTab")} />
 					<Tab label={I18n.t("devicesTab")} />
 					{
-						this.props.native.devices.map((device, index) => {
+						this.props.state.native.devices.map((device, index) => {
 							return <Tab key={index} label={device.name} />;
 						})
 					}
@@ -95,13 +99,13 @@ class Settings extends React.Component<SettingsProps, SettingsState> {
 						</Button>
 						<br /><br />
 						<h1>{I18n.t("generalSettingsTab")}</h1>
-						<TextField label={I18n.t("pollInterval")} type='number' value={this.props.native.pollInterval} onChange={(e) => {
+						<TextField label={I18n.t("pollInterval")} type='number' value={this.props.state.native.pollInterval} onChange={(e) => {
 							this.props.onChange("pollInterval", Number(e.target.value));
 						}} /> <br /><br />
-						<TextField label={I18n.t("listenIp")} value={this.props.native.ip} onChange={(e) => {
+						<TextField label={I18n.t("listenIp")} value={this.props.state.native.ip} onChange={(e) => {
 							this.props.onChange("ip", e.target.value);
 						}} /> <br /><br />
-						<TextField label={I18n.t("listenPort")} type='number' value={this.props.native.port} onChange={(e) => {
+						<TextField label={I18n.t("listenPort")} type='number' value={this.props.state.native.port} onChange={(e) => {
 							this.props.onChange("port", Number(e.target.value));
 						}} />
 					</CustomTabPanel>
@@ -111,17 +115,17 @@ class Settings extends React.Component<SettingsProps, SettingsState> {
 							{I18n.t("generalSettingsTab")}
 						</Button>
 						<br /><br />
-						<DeviceList native={this.props.native} onChange={this.props.onChange} selectTab={(tab) => this.setState({tab: tab})} setDevices={setDevices} />
+						<DeviceList socket={this.props.socket} connectionInfo={this.props.connectionInfo} native={this.props.state.native} onChange={this.props.onChange} selectTab={(tab) => this.setState({tab: tab})} setDevices={setDevices} />
 					</CustomTabPanel>
 
 					{
-						this.props.native.devices.map((device, index) => {
+						this.props.state.native.devices.map((device, index) => {
 							return <CustomTabPanel key={index} value={this.state.tab} index={index + 2}>
 									<Button style={{width: '100%'}} variant="contained" color="secondary" onClick={() => this.setState({tab: 1})}>
 										{I18n.t("showAllDevices")}
 									</Button>
 									<br /><br />
-									<ObjectList native={this.props.native} deviceIndex={index} onChange={this.props.onChange} setDevices={setDevices} />
+									<ObjectList state={this.props.state} deviceIndex={index} onChange={this.props.onChange} setDevices={setDevices} />
 								</CustomTabPanel>;
 						})
 					}
