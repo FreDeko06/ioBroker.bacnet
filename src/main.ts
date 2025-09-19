@@ -271,7 +271,9 @@ class BacnetAdapter extends utils.Adapter {
           resolve();
         })
         .catch((e: any) => {
-          this.log.error(this.formatBacnetError(e));
+          this.log.error(
+            `Failed to poll ${dev.name}/${obj.objectName}: ${this.formatBacnetError(e)}`,
+          );
           resolve();
         });
     });
@@ -347,7 +349,9 @@ class BacnetAdapter extends utils.Adapter {
       prop == "present_value" && obj.binary ? value == 1 : value,
       true,
     ).catch((e: any) => {
-      this.log.error(this.formatBacnetError(e));
+      this.log.error(
+        `Failed to set state ${dev.name}/${obj.objectName}/${prop}: ${this.formatBacnetError(e)}`,
+      );
     });
   }
 
@@ -771,6 +775,9 @@ class BacnetAdapter extends utils.Adapter {
 
   private formatBacnetError(error: Error): string {
     try {
+      if (error.message == "ERR_TIMEOUT") {
+        return `Error: Timeout`;
+      }
       const err: string = error.message;
       const regex = /- Class:(\d+) - Code:(\d+)/g;
       const matches = [...err.matchAll(regex)][0];
