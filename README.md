@@ -72,8 +72,7 @@ The properties must be specified by property-ids seperated by commas.
 
 
 ## Changelog
-
-### **WORK IN PROGRESS**
+### 0.1.0 (2025-09-19)
 * (FreDeko) initial release
 
 ## License
