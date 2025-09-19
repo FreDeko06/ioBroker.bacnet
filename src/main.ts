@@ -87,6 +87,7 @@ class BacnetAdapter extends utils.Adapter {
     const client = new Bacnet({
       port: this.config.port,
       interface: this.config.ip,
+      apduTimeout: 2000,
     });
 
     this.bacnet = client;
@@ -155,8 +156,7 @@ class BacnetAdapter extends utils.Adapter {
         const obj = dev.objects[idx];
         if (!obj.subscribe) continue;
         this.log.debug(`subscribing to ${dev.name}/${obj.objectName}`);
-        this.subscribeCOV(dev, obj, id++, 0);
-        await new Promise((r) => setTimeout(r, 100));
+        await this.subscribeCOV(dev, obj, id++, 0);
       }
     }
 
@@ -233,8 +233,7 @@ class BacnetAdapter extends utils.Adapter {
       const dev = this.devices[dIdx];
       for (let idx = 0; idx < dev.objects.length; idx++) {
         const obj = dev.objects[idx];
-        this.pollProperties(dev, obj);
-        await new Promise((r) => setTimeout(r, 100));
+        await this.pollProperties(dev, obj);
       }
     }
   }
@@ -457,17 +456,14 @@ class BacnetAdapter extends utils.Adapter {
         .catch(() => {})
         .finally(() => {
           this.bacnet.close();
+          callback();
         });
-
-      callback();
     } catch {
       callback();
     }
   }
 
   private async unsubscribeCOVs(): Promise<void> {
-    const promises: Promise<void>[] = [];
-
     let id = 80;
     for (let dIdx = 0; dIdx < this.devices.length; dIdx++) {
       const dev = this.devices[dIdx];
@@ -475,12 +471,9 @@ class BacnetAdapter extends utils.Adapter {
         const obj = dev.objects[idx];
         if (!obj.subscribe) return;
         this.log.debug(`unsubscribing from ${dev.name}/${obj.objectName}`);
-        this.subscribeCOV(dev, obj, id++, 1);
-
-        await new Promise((r) => setTimeout(r, 100));
+        await this.subscribeCOV(dev, obj, id++, 1);
       }
     }
-    await Promise.allSettled(promises);
   }
 
   private async subscribeCOV(
@@ -509,11 +502,13 @@ class BacnetAdapter extends utils.Adapter {
         this.log.warn(
           `Failed to subscribe to ${dev.name}/${obj.objectName}: ${this.formatBacnetError(e)}`,
         );
-        this.log.warn(`Trying again in 5 seconds(${tries} attempt)`);
-        this.setTimeout(
-          () => this.subscribeCOV(dev, obj, id, time, tries + 1),
-          5000,
-        );
+        if (time != 1) {
+          this.log.warn(`Trying again in 5 seconds(${tries} attempt)`);
+          this.setTimeout(
+            () => this.subscribeCOV(dev, obj, id, time, tries + 1),
+            5000,
+          );
+        }
       });
   }
 
