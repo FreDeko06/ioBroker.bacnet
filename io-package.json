@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "bacnet",
-    "version": "0.1.1",
+    "version": "0.1.2",
     "news": {
+      "0.1.2": {
+        "en": "removed delay in send (now reading after previous request finished)\nremoved retry for unsubscribe",
+        "de": "Verzögerung bei der send-Methode entfernt (es wird nun gelesen, nachdem die vorherige Anfrage abgeschlossen wurde)\nEntferntes erneutes Versuchen beim Abmelden.",
+        "ru": "удалена задержка в отправке (теперь читается после завершения предыдущего запроса)\nудалена возможность повторной попытки отмены подписки",
+        "pt": "removido o atraso no envio (agora lendo após a conclusão da solicitação anterior)\nremovida a opção de tentar novamente para cancelar a inscrição",
+        "nl": "Vertraging verwijderd bij het verzenden (nu wordt gelezen nadat het vorige verzoek is voltooid)\nVerwijderd opnieuw proberen voor het afmelden.",
+        "fr": "Suppression du délai dans l'envoi (maintenant la lecture se fait après la fin de la requête précédente)\nsupprimé la fonction de réessai pour se désabonner",
+        "it": "rimosso il ritardo nell'invio (ora la lettura avviene dopo che la richiesta precedente è stata completata)\nrimosso il tentativo di ripetere la disiscrizione",
+        "es": "se eliminó el retraso en el envío (ahora se lee después de que la solicitud anterior haya finalizado)\neliminado reintentar para cancelar subscripción",
+        "pl": "Usunięto opóźnienie w wysyłce (teraz odczyt następuje po zakończeniu poprzedniego żądania)\nusunięto ponawianie próby anulowania subskrypcji",
+        "uk": "видалено затримку відправки (тепер зчитування відбувається після завершення попереднього запиту)\nвидалено спробу повторного відписання",
+        "zh-cn": "发送中移除了延迟（现在读取在前一次请求完成后进行）\n取消订阅时移除重试功能"
+      },
       "0.1.1": {
         "en": "improved error messages",
         "de": "Verbesserte Fehlermeldungen",

@@ -72,7 +72,7 @@ The properties must be specified by property-ids seperated by commas.
 
 
 ## Changelog
-### **WORK IN PROGRESS**
+### 0.1.2 (2025-09-19)
 * removed delay in send (now reading after previous request finished)
 * removed retry for unsubscribe
 

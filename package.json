@@ -1,6 +1,6 @@
 {
   "name": "iobroker.bacnet",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Adapter to communicate with devices using BACnet",
   "author": {
     "name": "FreDeko",
