@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "bacnet",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "news": {
+      "0.1.1": {
+        "en": "improved error messages",
+        "de": "Verbesserte Fehlermeldungen",
+        "ru": "Улучшены сообщения об ошибках",
+        "pt": "Mensagens de erro aprimoradas",
+        "nl": "Verbeterde foutmeldingen",
+        "fr": "Messages d'erreur améliorés",
+        "it": "Migliorate le segnalazioni di errore",
+        "es": "Mejora en los mensajes de error",
+        "pl": "Poprawione komunikaty o błędach.",
+        "uk": "Покращено повідомлення про помилки",
+        "zh-cn": "改进了错误消息"
+      },
       "0.1.0": {
         "en": "initial release",
         "de": "Erstveröffentlichung",
@@ -15,7 +28,7 @@
         "pl": "pierwsze wydanie",
         "uk": "початковий випуск",
         "zh-cn": "初始版本"
-      }    
+      }
     },
     "titleLang": {
       "en": "BACnet",
