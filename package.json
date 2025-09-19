@@ -88,8 +88,8 @@
     "test:integration": "mocha test/integration --exit",
     "test": "npm run test:ts && npm run test:package",
     "check": "tsc --noEmit && tsc --noEmit -p admin/tsconfig.json",
-    "lint": "eslint -c eslint.config.js --ext .ts,.tsx src/",
-    "fix": "eslint --fix -c eslint.config.js --ext .ts,.tsx src/",
+    "lint": "eslint -c eslint.config.js --ext .ts,.tsx src/ admin/src/",
+    "fix": "eslint --fix -c eslint.config.js --ext .ts,.tsx src/ admin/src",
     "translate": "translate-adapter",
     "release": "release-script",
     "dev-server": "dev-server"

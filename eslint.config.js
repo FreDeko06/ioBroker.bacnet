@@ -23,7 +23,10 @@ module.exports = defineConfig([{
         sourceType: "module",
 
         parserOptions: {
-            project: "./tsconfig.json",
+            project: [
+		    "./tsconfig.json",
+		    "./admin/tsconfig.json"
+	    ]
         },
     },
 
@@ -33,6 +36,7 @@ module.exports = defineConfig([{
     rules: {
         "@typescript-eslint/no-parameter-properties": "off",
         "@typescript-eslint/no-explicit-any": "off",
+        "@typescript-eslint/no-require-imports": "off",
 
         "@typescript-eslint/no-use-before-define": ["error", {
             functions: false,

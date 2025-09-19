@@ -1,141 +1,190 @@
-import React from 'react';
-import { withStyles } from '@material-ui/core/styles';
-import { CreateCSSProperties } from '@material-ui/core/styles/withStyles';
-import { Button, Tab, Tabs, TextField } from '@material-ui/core';
-import DeviceList from './DeviceList';
-import ObjectList from './ObjectList';
+import React from "react";
+import { withStyles } from "@material-ui/core/styles";
+import { CreateCSSProperties } from "@material-ui/core/styles/withStyles";
+import { Button, Tab, Tabs, TextField } from "@material-ui/core";
+import DeviceList from "./DeviceList";
+import ObjectList from "./ObjectList";
 
-import I18n from '@iobroker/adapter-react/i18n';
-import { ConnectionProps } from '@iobroker/adapter-react/types';
-import Connection from '@iobroker/adapter-react/Connection';
+import I18n from "@iobroker/adapter-react/i18n";
+import Connection from "@iobroker/adapter-react/Connection";
 
 const styles = (): Record<string, CreateCSSProperties> => ({
-	input: {
-		marginTop: 0,
-		minWidth: 400,
-	},
-	button: {
-		marginRight: 20,
-	},
-	card: {
-		maxWidth: 345,
-		textAlign: 'center',
-	},
-	media: {
-		height: 180,
-	},
-	column: {
-		display: 'inline-block',
-		verticalAlign: 'top',
-		marginRight: 20,
-	},
-	columnLogo: {
-		width: 350,
-		marginRight: 0,
-	},
-	columnSettings: {
-		width: 'calc(100% - 370px)',
-	},
-	controlElement: {
-		//background: "#d2d2d2",
-		marginBottom: 5,
-	},
+  input: {
+    marginTop: 0,
+    minWidth: 400,
+  },
+  button: {
+    marginRight: 20,
+  },
+  card: {
+    maxWidth: 345,
+    textAlign: "center",
+  },
+  media: {
+    height: 180,
+  },
+  column: {
+    display: "inline-block",
+    verticalAlign: "top",
+    marginRight: 20,
+  },
+  columnLogo: {
+    width: 350,
+    marginRight: 0,
+  },
+  columnSettings: {
+    width: "calc(100% - 370px)",
+  },
+  controlElement: {
+    //background: "#d2d2d2",
+    marginBottom: 5,
+  },
 });
 
 interface SettingsProps {
-	classes: Record<string, string>;
-	state: any;
-	connectionInfo: any;
-	socket: Connection;
+  classes: Record<string, string>;
+  state: any;
+  connectionInfo: any;
+  socket: Connection;
 
-	onChange: (attr: string, value: any) => void;
+  onChange: (attr: string, value: any) => void;
 }
 
 interface SettingsState {
-
-	tab: number;
-
+  tab: number;
 }
 
 class Settings extends React.Component<SettingsProps, SettingsState> {
-	constructor(props: SettingsProps) {
-		super(props);
+  constructor(props: SettingsProps) {
+    super(props);
 
-		if (this.props.state.native.devices == undefined) {
-			this.props.state.native.devices = [];
-		}
+    if (this.props.state.native.devices == undefined) {
+      this.props.state.native.devices = [];
+    }
 
-		this.state = {
-			tab: 0
-		};
-	}
+    this.state = {
+      tab: 0,
+    };
+  }
 
-	render() {
-		const setDevices = (set) => {
-			let devices = JSON.parse(JSON.stringify(this.props.state.native.devices));
+  render(): JSX.Element {
+    const setDevices = (set): void => {
+      const devices = JSON.parse(
+        JSON.stringify(this.props.state.native.devices),
+      );
 
-			set(devices);
+      set(devices);
 
-			this.props.onChange("devices", devices);
-		}
+      this.props.onChange("devices", devices);
+    };
 
-		return (
-			<form className={this.props.classes.tab}>
-				<Tabs value={this.state.tab} onChange={(e, newTab) => this.setState({tab: newTab})}>
-					<Tab label={I18n.t("generalSettingsTab")} />
-					<Tab label={I18n.t("devicesTab")} />
-					{
-						this.props.state.native.devices.map((device, index) => {
-							return <Tab key={index} label={device.name} />;
-						})
-					}
-				</Tabs>
+    return (
+      <form className={this.props.classes.tab}>
+        <Tabs
+          value={this.state.tab}
+          onChange={(e, newTab) => this.setState({ tab: newTab })}
+        >
+          <Tab label={I18n.t("generalSettingsTab")} />
+          <Tab label={I18n.t("devicesTab")} />
+          {this.props.state.native.devices.map((device, index) => {
+            return <Tab key={index} label={device.name} />;
+          })}
+        </Tabs>
 
-				<div style={{padding: 10}}>
+        <div style={{ padding: 10 }}>
+          <CustomTabPanel value={this.state.tab} index={0}>
+            <Button
+              style={{ width: "100%" }}
+              variant="contained"
+              color="secondary"
+              onClick={() => this.setState({ tab: 1 })}
+            >
+              {I18n.t("editDevices")}
+            </Button>
+            <br />
+            <br />
+            <h1>{I18n.t("generalSettingsTab")}</h1>
+            <TextField
+              label={I18n.t("pollInterval")}
+              type="number"
+              value={this.props.state.native.pollInterval}
+              onChange={(e) => {
+                this.props.onChange("pollInterval", Number(e.target.value));
+              }}
+            />{" "}
+            <br />
+            <br />
+            <TextField
+              label={I18n.t("listenIp")}
+              value={this.props.state.native.ip}
+              onChange={(e) => {
+                this.props.onChange("ip", e.target.value);
+              }}
+            />{" "}
+            <br />
+            <br />
+            <TextField
+              label={I18n.t("listenPort")}
+              type="number"
+              value={this.props.state.native.port}
+              onChange={(e) => {
+                this.props.onChange("port", Number(e.target.value));
+              }}
+            />
+          </CustomTabPanel>
 
-					<CustomTabPanel value={this.state.tab} index={0}>
-						<Button style={{width: '100%'}} variant="contained" color="secondary" onClick={() => this.setState({tab: 1})}>
-							{I18n.t("editDevices")}
-						</Button>
-						<br /><br />
-						<h1>{I18n.t("generalSettingsTab")}</h1>
-						<TextField label={I18n.t("pollInterval")} type='number' value={this.props.state.native.pollInterval} onChange={(e) => {
-							this.props.onChange("pollInterval", Number(e.target.value));
-						}} /> <br /><br />
-						<TextField label={I18n.t("listenIp")} value={this.props.state.native.ip} onChange={(e) => {
-							this.props.onChange("ip", e.target.value);
-						}} /> <br /><br />
-						<TextField label={I18n.t("listenPort")} type='number' value={this.props.state.native.port} onChange={(e) => {
-							this.props.onChange("port", Number(e.target.value));
-						}} />
-					</CustomTabPanel>
+          <CustomTabPanel value={this.state.tab} index={1}>
+            <Button
+              style={{ width: "100%" }}
+              variant="contained"
+              color="secondary"
+              onClick={() => this.setState({ tab: 0 })}
+            >
+              {I18n.t("generalSettingsTab")}
+            </Button>
+            <br />
+            <br />
+            <DeviceList
+              socket={this.props.socket}
+              connectionInfo={this.props.connectionInfo}
+              native={this.props.state.native}
+              selectTab={(tab) => this.setState({ tab: tab })}
+              setDevices={setDevices}
+            />
+          </CustomTabPanel>
 
-					<CustomTabPanel value={this.state.tab} index={1}>
-						<Button style={{width: '100%'}} variant="contained" color="secondary" onClick={() => this.setState({tab: 0})}>
-							{I18n.t("generalSettingsTab")}
-						</Button>
-						<br /><br />
-						<DeviceList socket={this.props.socket} connectionInfo={this.props.connectionInfo} native={this.props.state.native} onChange={this.props.onChange} selectTab={(tab) => this.setState({tab: tab})} setDevices={setDevices} />
-					</CustomTabPanel>
-
-					{
-						this.props.state.native.devices.map((device, index) => {
-							return <CustomTabPanel key={index} value={this.state.tab} index={index + 2}>
-									<Button style={{width: '100%'}} variant="contained" color="secondary" onClick={() => this.setState({tab: 1})}>
-										{I18n.t("showAllDevices")}
-									</Button>
-									<br /><br />
-									<ObjectList socket={this.props.socket} connectionInfo={this.props.connectionInfo} state={this.props.state} deviceIndex={index} onChange={this.props.onChange} setDevices={setDevices} />
-								</CustomTabPanel>;
-						})
-					}
-
-				</div>
-			</form>
-		);
-	}
+          {this.props.state.native.devices.map((device, index) => {
+            return (
+              <CustomTabPanel
+                key={index}
+                value={this.state.tab}
+                index={index + 2}
+              >
+                <Button
+                  style={{ width: "100%" }}
+                  variant="contained"
+                  color="secondary"
+                  onClick={() => this.setState({ tab: 1 })}
+                >
+                  {I18n.t("showAllDevices")}
+                </Button>
+                <br />
+                <br />
+                <ObjectList
+                  socket={this.props.socket}
+                  connectionInfo={this.props.connectionInfo}
+                  state={this.props.state}
+                  deviceIndex={index}
+                  setDevices={setDevices}
+                />
+              </CustomTabPanel>
+            );
+          })}
+        </div>
+      </form>
+    );
+  }
 }
-
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -143,7 +192,7 @@ interface TabPanelProps {
   value: number;
 }
 
-function CustomTabPanel(props: TabPanelProps) {
+function CustomTabPanel(props: TabPanelProps): JSX.Element {
   const { children, value, index, ...other } = props;
 
   return (
@@ -158,6 +207,5 @@ function CustomTabPanel(props: TabPanelProps) {
     </div>
   );
 }
-
 
 export default withStyles(styles)(Settings);

@@ -5,7 +5,6 @@
 import * as utils from "@iobroker/adapter-core";
 import Bacnet, {
   ApplicationTag,
-  ASN1_MAX_PROPERTY_ID,
   BACNetPropertyID,
   ErrorClass,
   ErrorCode,
@@ -60,7 +59,7 @@ class BacnetAdapter extends utils.Adapter {
     });
     this.on("ready", this.onReady.bind(this));
     this.on("stateChange", this.onStateChange.bind(this));
-    this.on('message', this.onMessage.bind(this));
+    this.on("message", this.onMessage.bind(this));
     this.on("unload", this.onUnload.bind(this));
   }
 
@@ -75,13 +74,13 @@ class BacnetAdapter extends utils.Adapter {
       this.PROPERTIES[mod.toLowerCase()] = { id: id };
     }
 
-    this.on('message', obj => {
-    if (obj && obj.command === 'test') {
-        if (typeof obj.callback === 'function') {
-            this.sendTo(obj.from, obj.command, { success: true }, obj.callback);
+    this.on("message", (obj) => {
+      if (obj && obj.command === "test") {
+        if (typeof obj.callback === "function") {
+          this.sendTo(obj.from, obj.command, { success: true }, obj.callback);
         }
-    }
-});
+      }
+    });
 
     this.log.debug(`binding to local port ${this.config.port}`);
 
@@ -98,6 +97,12 @@ class BacnetAdapter extends utils.Adapter {
       dev.name = dev.name
         .replace(this.FORBIDDEN_CHARS, "_")
         .replaceAll(".", "_");
+      if (dev.name == "") {
+        this.log.warn(
+          `Skipping device ${dev.ip} with ${dev.objects.length} object(s). Name cannot be empty`,
+        );
+        return;
+      }
       if (
         this.devices.some((d: Device) => d.name == dev.name || d.ip == dev.ip)
       ) {
@@ -111,6 +116,7 @@ class BacnetAdapter extends utils.Adapter {
         obj.objectName = obj.objectName
           .replace(this.FORBIDDEN_CHARS, "_")
           .replaceAll(".", "_");
+        obj.props = obj.props.filter((p: number) => p != null);
         if (
           objects.some(
             (o: BACnetObject) =>
@@ -351,7 +357,7 @@ class BacnetAdapter extends utils.Adapter {
   }
 
   private async deleteUnusedStates(): Promise<void> {
-	  await this.delObjectAsync("dev", {recursive: true});
+    await this.delObjectAsync("dev", { recursive: true });
     //const objects = await this.getAdapterObjectsAsync();
     //for (const s in objects) {
     //  if (!s.startsWith(`${this.name}.${this.instance}.dev`)) continue;
@@ -663,12 +669,17 @@ class BacnetAdapter extends utils.Adapter {
         PropertyIdentifier.OBJECT_LIST,
       );
       return await new Promise<BACnetObj[]>((resolve) => {
-      const promises: Promise<void>[] = [];
+        const promises: Promise<void>[] = [];
         vals.values.forEach((v: any) => {
-		const p = this.findObject(dev, {type: v.value.type, instance: v.value.instance}).then((v:BACnetObj) => {
-			objs.push(v);
-		}).catch(() => {});
-		promises.push(p);
+          const p = this.findObject(dev, {
+            type: v.value.type,
+            instance: v.value.instance,
+          })
+            .then((v: BACnetObj) => {
+              objs.push(v);
+            })
+            .catch(() => {});
+          promises.push(p);
         });
         Promise.allSettled(promises).then(() => {
           resolve(objs);
@@ -680,43 +691,49 @@ class BacnetAdapter extends utils.Adapter {
     }
   }
 
-  private async findObject(dev: BACnetDevice, object: {type: number, instance: number}): Promise<BACnetObj> {
-	  return await new Promise<BACnetObj>((resolve, reject) => {
-		  const obj: BACnetObj = {
-			  id: object.instance,
-			  type: object.type,
-			  name: "",
-			  desc: "",
-		  };
-		  const propertyArray: BACNetPropertyID[] = [{index: 0, id: PropertyIdentifier.OBJECT_NAME}, {index: 0, id: PropertyIdentifier.DESCRIPTION}];
-		  this.bacnet
-		  .readPropertyMultiple({ address: dev.ip }, [
-			  {
-				  objectId: { type: object.type, instance: object.instance },
-				  properties: propertyArray,
-			  },
-		  ])
-		  .then((value) => {
-			  value.values[0].values.forEach((v: any) => {
-				  if (v.value[0].type == 105) {
-					  // error
-					  resolve(obj);
-					  return;
-				  }
-				  const id = v.id;
-				  if (id == PropertyIdentifier.OBJECT_NAME) {
-					  obj.name = v.value[0].value;
-				  }
-				  if (id == PropertyIdentifier.DESCRIPTION) {
-					  obj.desc = v.value[0].value;
-				  }
-			  });
-			  resolve(obj);
-		  }).catch(() => {
-			  reject();
-		  });
-
-	  });
+  private async findObject(
+    dev: BACnetDevice,
+    object: { type: number; instance: number },
+  ): Promise<BACnetObj> {
+    return await new Promise<BACnetObj>((resolve, reject) => {
+      const obj: BACnetObj = {
+        id: object.instance,
+        type: object.type,
+        name: "",
+        desc: "",
+      };
+      const propertyArray: BACNetPropertyID[] = [
+        { index: 0, id: PropertyIdentifier.OBJECT_NAME },
+        { index: 0, id: PropertyIdentifier.DESCRIPTION },
+      ];
+      this.bacnet
+        .readPropertyMultiple({ address: dev.ip }, [
+          {
+            objectId: { type: object.type, instance: object.instance },
+            properties: propertyArray,
+          },
+        ])
+        .then((value) => {
+          value.values[0].values.forEach((v: any) => {
+            if (v.value[0].type == 105) {
+              // error
+              resolve(obj);
+              return;
+            }
+            const id = v.id;
+            if (id == PropertyIdentifier.OBJECT_NAME) {
+              obj.name = v.value[0].value;
+            }
+            if (id == PropertyIdentifier.DESCRIPTION) {
+              obj.desc = v.value[0].value;
+            }
+          });
+          resolve(obj);
+        })
+        .catch(() => {
+          reject();
+        });
+    });
   }
 
   private async findDevice(ip: string): Promise<BACnetDevice> {
@@ -763,32 +780,70 @@ class BacnetAdapter extends utils.Adapter {
     }
   }
 
-   private async onMessage(obj: ioBroker.Message): Promise<void> {
-	   this.log.debug(`Received msg: ${obj.command}`);
-   	if (typeof obj === 'object' && obj.message) {
-   		if (obj.command === 'getDeviceName') {
-			this.log.info(`Device-Name for ip: ${obj.message.ip}`);
-			this.findDevice(obj.message.ip).then((dev: BACnetDevice) => {
-				this.sendTo(obj.from, obj.command, {success: true, name: dev.name}, obj.callback);
-			}).catch(() => {
-				this.sendTo(obj.from, obj.command, {success: false, name: ''}, obj.callback);
-			});
-   		}
-   		if (obj.command === 'getObjectDesc') {
-			this.log.info(`Obj-Desc for ip: ${obj.message.ip}, ${obj.message.objType}, ${obj.message.objId}`);
-			this.findDevice(obj.message.ip).then((dev: BACnetDevice) => {
-				this.findObject(dev, {instance: obj.message.objId, type: obj.message.objType}).then((object: BACnetObj) => {
-					this.sendTo(obj.from, obj.command, {success: true, name: object.name, desc: object.desc}, obj.callback);
-				}).catch((e: Error) => {
-					this.sendTo(obj.from, obj.command, {success: false, name: '', desc: ''}, obj.callback);
-					this.log.error(`getObjectDesc failed: ${this.formatBacnetError(e)}`);
-				});
-			}).catch(() => {
-					this.sendTo(obj.from, obj.command, {success: false, name: '', desc: ''}, obj.callback);
-			});
-   		}
-   	}
-   }
+  private async onMessage(obj: ioBroker.Message): Promise<void> {
+    this.log.debug(`Received msg: ${obj.command}`);
+    if (typeof obj === "object" && obj.message) {
+      if (obj.command === "getDeviceName") {
+        this.log.info(`Device-Name for ip: ${obj.message.ip}`);
+        this.findDevice(obj.message.ip)
+          .then((dev: BACnetDevice) => {
+            this.sendTo(
+              obj.from,
+              obj.command,
+              { success: true, name: dev.name },
+              obj.callback,
+            );
+          })
+          .catch(() => {
+            this.sendTo(
+              obj.from,
+              obj.command,
+              { success: false, name: "" },
+              obj.callback,
+            );
+          });
+      }
+      if (obj.command === "getObjectDesc") {
+        this.log.info(
+          `Obj-Desc for ip: ${obj.message.ip}, ${obj.message.objType}, ${obj.message.objId}`,
+        );
+        this.findDevice(obj.message.ip)
+          .then((dev: BACnetDevice) => {
+            this.findObject(dev, {
+              instance: obj.message.objId,
+              type: obj.message.objType,
+            })
+              .then((object: BACnetObj) => {
+                this.sendTo(
+                  obj.from,
+                  obj.command,
+                  { success: true, name: object.name, desc: object.desc },
+                  obj.callback,
+                );
+              })
+              .catch((e: Error) => {
+                this.sendTo(
+                  obj.from,
+                  obj.command,
+                  { success: false, name: "", desc: "" },
+                  obj.callback,
+                );
+                this.log.error(
+                  `getObjectDesc failed: ${this.formatBacnetError(e)}`,
+                );
+              });
+          })
+          .catch(() => {
+            this.sendTo(
+              obj.from,
+              obj.command,
+              { success: false, name: "", desc: "" },
+              obj.callback,
+            );
+          });
+      }
+    }
+  }
 }
 
 if (require.main !== module) {
