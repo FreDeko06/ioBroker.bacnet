@@ -74,7 +74,7 @@ The properties must be specified by property-ids seperated by commas.
 
 
 ## Changelog
-### **WORK IN PROGRESS**
+### 0.1.3 (2025-09-21)
 * made fetch button disabled, while fetching
 * added check if instance is alive
 

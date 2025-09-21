@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "bacnet",
-    "version": "0.1.2",
+    "version": "0.1.3",
     "news": {
+      "0.1.3": {
+        "en": "made fetch button disabled, while fetching\nadded check if instance is alive",
+        "de": "Deaktivierte die Fetch-Schaltfläche während des Abrufs.\nHinzufügen der Überprüfung, ob die Instanz aktiv ist",
+        "ru": "Сделал кнопку fetch неактивной во время выполнения запроса.\nдобавлена проверка на наличие активного экземпляра",
+        "pt": "Desativado o botão de busca durante a busca\nadicionado verificação se a instância está ativa",
+        "nl": "Gemaakt fetch-knop uitgeschakeld tijdens ophalen.\ntoegevoegd controle of de instantie actief is",
+        "fr": "a rendu le bouton de récupération désactivé pendant le processus de récupération\najout de la vérification si l'instance est active",
+        "it": "resi disabilitato il pulsante di recupero durante il recupero\naggiunta verifica se l'istanza è attiva",
+        "es": "Desactivado el botón de búsqueda mientras se está realizando la búsqueda.\nagregada verificación de si la instancia está activa",
+        "pl": "Wyłączenie przycisku \"fetch\" podczas pobierania.\ndodano sprawdzenie, czy instancja jest aktywna",
+        "uk": "Зроблено кнопку «Завантажити» неактивною під час завантаження.\nдодано перевірку, чи екземпляр працює",
+        "zh-cn": "在获取数据时，将获取按钮设为禁用状态。\n添加实例是否存活的检查"
+      },
       "0.1.2": {
         "en": "removed delay in send (now reading after previous request finished)\nremoved retry for unsubscribe",
         "de": "Verzögerung bei der send-Methode entfernt (es wird nun gelesen, nachdem die vorherige Anfrage abgeschlossen wurde)\nEntferntes erneutes Versuchen beim Abmelden.",
