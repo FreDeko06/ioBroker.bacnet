@@ -1,5 +1,5 @@
 import { Button, TextField } from "@material-ui/core";
-import React from "react";
+import React, { useState } from "react";
 
 import I18n from "@iobroker/adapter-react/i18n";
 import Connection from "@iobroker/adapter-react/Connection";
@@ -37,6 +37,8 @@ export default function DeviceList({
       {I18n.t("deviceAdd")}
     </Button>
   );
+
+  const [fetchDisabled, setFetchDisabled] = useState(false);
 
   return (
     <>
@@ -80,20 +82,35 @@ export default function DeviceList({
                 <Button
                   variant="contained"
                   color="primary"
+                  disabled={fetchDisabled}
                   onClick={async () => {
+                    setFetchDisabled(true);
+                    const alive = await (socket as Connection).getState(
+                      `system.adapter.${connectionInfo.adapterName}.${connectionInfo.instanceId}.alive`,
+                    );
+                    if (!alive || !alive.val) {
+                      alert("Please start instance first.");
+                      setFetchDisabled(false);
+                      return;
+                    }
                     const p = await (socket as Connection).sendTo(
                       `${connectionInfo.adapterName}.${connectionInfo.instanceId}`,
                       "getDeviceName",
                       { ip: native.devices[row].ip },
                     );
-                    if (p == undefined) return;
+                    if (p == undefined) {
+                      setFetchDisabled(false);
+                      return;
+                    }
                     const msg: { success: boolean; name: string } =
                       p as unknown as { success: boolean; name: string };
                     console.log(msg);
                     if (msg.success) {
                       setDevices((devices) => (devices[row].name = msg.name));
+                      setFetchDisabled(false);
                     } else {
                       alert("Device not found");
+                      setFetchDisabled(false);
                     }
                   }}
                 >

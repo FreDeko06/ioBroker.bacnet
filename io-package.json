@@ -89,7 +89,7 @@
     "loglevel": "info",
     "tier": 3,
     "mode": "daemon",
-    "type": "iot-systems",
+    "type": "protocols",
     "supportedMessages": {
       "custom": true
     },

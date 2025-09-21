@@ -560,7 +560,6 @@ class BacnetAdapter extends utils.Adapter {
       ]).then((value) => {
         value.values[0].values.forEach((v) => {
           if (v.value[0].type == 105) {
-            resolve(obj);
             return;
           }
           const id = v.id;
@@ -623,7 +622,6 @@ class BacnetAdapter extends utils.Adapter {
     this.log.debug(`Received msg: ${obj.command}`);
     if (typeof obj === "object" && obj.message) {
       if (obj.command === "getDeviceName") {
-        this.log.info(`Device-Name for ip: ${obj.message.ip}`);
         this.findDevice(obj.message.ip).then((dev) => {
           this.sendTo(
             obj.from,
@@ -641,9 +639,6 @@ class BacnetAdapter extends utils.Adapter {
         });
       }
       if (obj.command === "getObjectDesc") {
-        this.log.info(
-          `Obj-Desc for ip: ${obj.message.ip}, ${obj.message.objType}, ${obj.message.objId}`
-        );
         this.findDevice(obj.message.ip).then((dev) => {
           this.findObject(dev, {
             instance: obj.message.objId,

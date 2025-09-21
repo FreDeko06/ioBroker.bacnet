@@ -40,7 +40,8 @@ The Ip-Address of the BAC-Device
 The display name of the BAC-Device (used for the state names)  
 
 #### Fetch
-Use this button to check if the device is reachable and fetch the display name directly from the device.
+Use this button to check if the device is reachable and fetch the display name directly from the device.  
+The instance has to be started.
 
 ### Setup Objects
 To add objects, either click the Device-Tab or click the show-button in the all devices list.  
@@ -60,7 +61,8 @@ The display name of the object (used for state names)
 The description of the object (used for state description)
 
 #### Fetch
-Use this button, to check if the object exists and fetch the display name and description from the device.
+Use this button, to check if the object exists and fetch the display name and description from the device.  
+The instance has to be started.
 
 #### Subscribe
 If checked, the adapter will subscribe to this object and will automatically receive a notification from the device if the object changes.
@@ -72,6 +74,10 @@ The properties must be specified by property-ids seperated by commas.
 
 
 ## Changelog
+### **WORK IN PROGRESS**
+* made fetch button disabled, while fetching
+* added check if instance is alive
+
 ### 0.1.2 (2025-09-19)
 * removed delay in send (now reading after previous request finished)
 * removed retry for unsubscribe

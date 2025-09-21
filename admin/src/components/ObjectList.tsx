@@ -5,7 +5,7 @@ import {
   Select,
   TextField,
 } from "@material-ui/core";
-import React from "react";
+import React, { useState } from "react";
 import Connection from "@iobroker/adapter-react/Connection";
 
 import I18n from "@iobroker/adapter-react/i18n";
@@ -52,6 +52,8 @@ export default function ObjectList({
       {I18n.t("objectAdd")}
     </Button>
   );
+
+  const [fetchDisabled, setFetchDisabled] = useState(false);
 
   return (
     <>
@@ -196,7 +198,17 @@ export default function ObjectList({
                 <Button
                   variant="contained"
                   color="primary"
+                  disabled={fetchDisabled}
                   onClick={async () => {
+                    setFetchDisabled(true);
+                    const alive = await (socket as Connection).getState(
+                      `system.adapter.${connectionInfo.adapterName}.${connectionInfo.instanceId}.alive`,
+                    );
+                    if (!alive || !alive.val) {
+                      alert("Please start instance first.");
+                      setFetchDisabled(false);
+                      return;
+                    }
                     const p = await (socket as Connection).sendTo(
                       `${connectionInfo.adapterName}.${connectionInfo.instanceId}`,
                       "getObjectDesc",
@@ -209,7 +221,10 @@ export default function ObjectList({
                             .objectId,
                       },
                     );
-                    if (p == undefined) return;
+                    if (p == undefined) {
+                      setFetchDisabled(false);
+                      return;
+                    }
                     const msg: {
                       success: boolean;
                       name: string;
@@ -221,6 +236,7 @@ export default function ObjectList({
                     };
                     console.log(msg);
                     if (msg.success) {
+                      setFetchDisabled(false);
                       setDevices(
                         (devices) =>
                           (devices[deviceIndex].objects[row].objectName =
@@ -232,6 +248,7 @@ export default function ObjectList({
                             msg.desc),
                       );
                     } else {
+                      setFetchDisabled(false);
                       alert("Object not found");
                     }
                   }}
