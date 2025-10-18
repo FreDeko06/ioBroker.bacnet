@@ -7,6 +7,7 @@ import ObjectList from "./ObjectList";
 
 import I18n from "@iobroker/adapter-react/i18n";
 import Connection from "@iobroker/adapter-react/Connection";
+import Export from "./Export";
 
 const styles = (): Record<string, CreateCSSProperties> => ({
   input: {
@@ -130,6 +131,12 @@ class Settings extends React.Component<SettingsProps, SettingsState> {
               onChange={(e) => {
                 this.props.onChange("port", Number(e.target.value));
               }}
+            />
+            <br />
+            <br />
+            <Export
+              data={this.props.state.native}
+              onChange={this.props.onChange}
             />
           </CustomTabPanel>
 

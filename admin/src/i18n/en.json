@@ -24,5 +24,9 @@
 	"delete": "Delete",
 	"pollInterval": "Poll Interval (s)",
 	"listenIp": "Listen IP",
-	"listenPort": "Listen Port"
+	"listenPort": "Listen Port",
+	"export": "Export/Import settings",
+	"close": "Close",
+	"copy": "Copy to clipboard",
+	"import": "Import data"
 }
