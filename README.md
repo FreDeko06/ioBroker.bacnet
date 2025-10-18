@@ -74,7 +74,7 @@ The properties must be specified by property-ids seperated by commas.
 
 
 ## Changelog
-### **WORK IN PROGRESS**
+### 0.1.4 (2025-10-18)
 * added config import/export
 
 ### 0.1.3 (2025-09-21)
