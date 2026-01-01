@@ -22,7 +22,7 @@
     "node": ">= 20"
   },
   "dependencies": {
-    "@bacnet-js/client": "^3.0.0",
+    "@bacnet-js/client": "^3.0.1",
     "@iobroker/adapter-core": "^3.3.2"
   },
   "devDependencies": {
