@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "bacnet",
-    "version": "0.1.4",
+    "version": "0.1.5",
     "news": {
+      "0.1.5": {
+        "en": "update dependencies\nuse iobroker eslint config\nsetup auto merge\nfix linting",
+        "de": "aktualisierung der abhängigkeiten\niobroker eslint config\nautomatischer zusammenschluss\nfix lining",
+        "ru": "обновление зависимостей\nиспользование iobroker eslint config\nнастройка авто слияние\nфиксировать подкладку",
+        "pt": "atualizar dependências\nusar a configuração do eslint do iobroker\nsetup auto merge\ncorrigir o linting",
+        "nl": "afhankelijkheden bijwerken\ngebruik iobroker eslint config\nsetup auto merge\nfix linting",
+        "fr": "mettre à jour les dépendances\nutiliser iobroker eslint config\nconfiguration fusion automatique\nfixer le doublage",
+        "it": "aggiornamento dipendenze\nuso iobroker eslint config\nconfigurazione auto merge\nfissare l'incollaggio",
+        "es": "dependencias de actualización\nuse iobroker eslint config\nsetup auto merge\nforro de fijación",
+        "pl": "aktualizacji zależności\nużyj konfiguratora eslint iobroker\nkonfiguracja automatycznego połączenia\nfix linting",
+        "uk": "оновлення залежності\nвикористання iobroker eslint config\nналаштування автоматичного злиття\nфіксувати linting",
+        "zh-cn": "更新依赖关系\n使用 io 经纪人 eslint 配置\n设置自动合并\n固定线条"
+      },
       "0.1.4": {
         "en": "added config import/export",
         "de": "einfuhr/ausfuhr",
