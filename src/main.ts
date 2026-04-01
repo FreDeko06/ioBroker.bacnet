@@ -500,7 +500,7 @@ class BacnetAdapter extends utils.Adapter {
     time: number,
     tries: number = 1,
   ): Promise<void> {
-    this.bacnet
+    return this.bacnet
       .subscribeCov(
         { address: dev.ip },
         { type: obj.type, instance: obj.objectId },
@@ -708,7 +708,7 @@ class BacnetAdapter extends utils.Adapter {
           resolve(objs);
         });
       });
-    } catch (e: *) {
+    } catch (e: any) {
       this.log.error(`Failed to read object list: ${e}`);
       return Promise.reject(e instanceof Error ? e : new Error(String(e)));
     }
@@ -807,11 +807,11 @@ class BacnetAdapter extends utils.Adapter {
     }
   }
 
-  private onMessage(obj: ioBroker.Message): Promise<void> {
+  private async onMessage(obj: ioBroker.Message): Promise<void> {
     this.log.debug(`Received msg: ${obj.command}`);
     if (typeof obj === "object" && obj.message) {
       if (obj.command === "getDeviceName") {
-        this.findDevice(obj.message.ip)
+        return this.findDevice(obj.message.ip)
           .then((dev: BACnetDevice) => {
             this.sendTo(
               obj.from,
@@ -830,7 +830,7 @@ class BacnetAdapter extends utils.Adapter {
           });
       }
       if (obj.command === "getObjectDesc") {
-        this.findDevice(obj.message.ip)
+        return this.findDevice(obj.message.ip)
           .then((dev: BACnetDevice) => {
             this.findObject(dev, {
               instance: obj.message.objId,

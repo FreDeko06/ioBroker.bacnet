@@ -78,6 +78,7 @@ The properties must be specified by property-ids seperated by commas.
 * update dependencies
 * use iobroker eslint config
 * setup auto merge
+* fix linting
 
 ### 0.1.4 (2025-10-18)
 * added config import/export
