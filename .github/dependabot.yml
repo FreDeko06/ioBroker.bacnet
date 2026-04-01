@@ -3,20 +3,20 @@ updates:
   - package-ecosystem: npm
     directory: "/"
     schedule:
-      interval: monthly
-      time: "04:00"
-      timezone: Europe/Berlin
-    open-pull-requests-limit: 5
+      interval: "cron"
+      cronjob: "48 3 4 * *"
+      timezone: "Europe/Berlin"
+    open-pull-requests-limit: 15
     assignees:
-      - FreDeko06
-    versioning-strategy: increase
+      - "FreDeko06"
+    versioning-strategy: "increase"
 
-  - package-ecosystem: github-actions
+  - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: monthly
-      time: "04:00"
-      timezone: Europe/Berlin
-    open-pull-requests-limit: 5
+      interval: "monthly"
+      cronjob: "48 3 4 * *"
+      timezone: "Europe/Berlin"
+    open-pull-requests-limit: 15
     assignees:
-      - FreDeko06
+      - "FreDeko06"

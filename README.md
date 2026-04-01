@@ -74,6 +74,11 @@ The properties must be specified by property-ids seperated by commas.
 
 
 ## Changelog
+### **WORK IN PROGRESS**
+* update dependencies
+* use iobroker eslint config
+* setup auto merge
+
 ### 0.1.4 (2025-10-18)
 * added config import/export
 
@@ -94,7 +99,7 @@ The properties must be specified by property-ids seperated by commas.
 ## License
 MIT License
 
-Copyright (c) 2025 FreDeko <freddegenkolb@gmail.com>
+Copyright (c) 2025-2026 FreDeko <freddegenkolb@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
