@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "bacnet",
-    "version": "0.1.5",
+    "version": "0.1.6",
     "news": {
+      "0.1.6": {
+        "en": "fixed that object ids can be duplicate if the object type is different\nupdate dependencies",
+        "de": "fixiert, dass objekt-ids doppelt werden können, wenn der objekttyp anders ist\naktualisierung der abhängigkeiten",
+        "ru": "ids объекта могут быть дублированы, если тип объекта отличается\nобновление зависимостей",
+        "pt": "fixo que os ids do objeto podem ser duplicados se o tipo de objeto for diferente\natualizar dependências",
+        "nl": "vast dat object id's kunnen worden gedupliceerd als het objecttype anders is\nafhankelijkheden bijwerken",
+        "fr": "fixe que les ids d'objet peuvent être dupliqués si le type d'objet est différent\nmettre à jour les dépendances",
+        "it": "fisso che gli id oggetti possono essere duplicati se il tipo di oggetto è diverso\naggiornamento dipendenze",
+        "es": "ids de objetos fijos pueden ser duplicados si el tipo de objeto es diferente\ndependencias de actualización",
+        "pl": "ustawione, że identyfikatory obiektów mogą być duplikowane, jeśli typ obiektu jest inny\naktualizacji zależności",
+        "uk": "виправлено, що ids об'єкта можуть бути дублікати, якщо тип об'єкта відрізняється\nоновлення залежності",
+        "zh-cn": "如果对象类型不同, 则固定对象 id 可以重复\n更新依赖关系"
+      },
       "0.1.5": {
         "en": "update dependencies\nuse iobroker eslint config\nsetup auto merge\nfix linting",
         "de": "aktualisierung der abhängigkeiten\niobroker eslint config\nautomatischer zusammenschluss\nfix lining",

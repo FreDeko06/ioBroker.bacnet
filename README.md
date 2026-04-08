@@ -74,7 +74,7 @@ The properties must be specified by property-ids seperated by commas.
 
 
 ## Changelog
-### **WORK IN PROGRESS**
+### 0.1.6 (2026-04-08)
 * fixed that object ids can be duplicate if the object type is different
 * update dependencies
 
