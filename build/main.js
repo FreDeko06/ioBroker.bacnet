@@ -80,7 +80,7 @@ class BacnetAdapter extends utils.Adapter {
         obj.objectName = obj.objectName.replace(this.FORBIDDEN_CHARS, "_").replaceAll(".", "_");
         obj.props = obj.props.filter((p) => p != null);
         if (objects.some(
-          (o) => o.objectId == obj.objectId || o.objectName == obj.objectName
+          (o) => o.objectId == obj.objectId && o.type == obj.type || o.objectName == obj.objectName
         )) {
           this.log.warn(
             `Skipping obj ${dev.name}/${obj.objectName}. Name or object id already exists.`

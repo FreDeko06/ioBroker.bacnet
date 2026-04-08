@@ -120,7 +120,8 @@ class BacnetAdapter extends utils.Adapter {
         if (
           objects.some(
             (o: BACnetObject) =>
-              o.objectId == obj.objectId || o.objectName == obj.objectName,
+              (o.objectId == obj.objectId && o.type == obj.type) ||
+              o.objectName == obj.objectName,
           )
         ) {
           this.log.warn(

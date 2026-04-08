@@ -74,6 +74,10 @@ The properties must be specified by property-ids seperated by commas.
 
 
 ## Changelog
+### **WORK IN PROGRESS**
+* fixed that object ids can be duplicate if the object type is different
+* update dependencies
+
 ### 0.1.5 (2026-04-01)
 * update dependencies
 * use iobroker eslint config
